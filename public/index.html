@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User management</title>
+  </head>
+  <body>
+    <h1>Users:</h1>
+    <div class="users">
+      <ul id="userslist"></ul>
+    </div>
+
+    <form method="post">
+      <input
+        type="text"
+        name="name"
+        id="name"
+        placeholder="Enter your name"
+      /><br />
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="Enter your email"
+      /><br />
+      <input
+        type="password"
+        name="password"
+        id="password"
+        placeholder="Enter your password"
+      /><br />
+      <button id="submit-btn" type="submit">Add user</button>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      const submitButton = document.getElementById("submit-btn");
+
+      async function deleteUser(id) {
+        try {
+          const response = await axios.delete(
+            `http://localhost:8000/users/${id}`
+          );
+          window.alert("User deleted success");
+          location.reload();
+        } catch (err) {
+          console.log(err);
+        }
+      }
+
+      async function fetchData() {
+        try {
+          const response = await axios.get("http://localhost:8000/users");
+          console.log("Data submitted successfully:", response.data);
+
+          response.data.map((ele) => {
+            const li = document.createElement("li");
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Remove";
+            deleteButton.dataset.userId = ele._id;
+            deleteButton.addEventListener("click", () => {
+              deleteUser(deleteButton.dataset.userId);
+            });
+            li.textContent = `${ele.name} (${ele.email})`;
+            li.appendChild(deleteButton);
+
+            document.getElementById("userslist").appendChild(li);
+          });
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+
+      window.onload = () => fetchData();
+
+      async function handleFormSubmit(event) {
+        event.preventDefault();
+        const data = {
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          password: document.getElementById("password").value,
+        };
+        console.log(data);
+
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/users",
+            data
+          );
+          const li = document.createElement("li");
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Remove";
+          deleteButton.dataset.userId = response.data._id;
+          deleteButton.addEventListener("click", () => {
+            deleteUser(deleteButton.dataset.userId);
+          });
+          li.textContent = `${response.data.name} (${response.data.email})`;
+          li.appendChild(deleteButton);
+          document.getElementById("userslist").appendChild(li);
+        } catch (error) {
+          console.error("Error submitting data:", error);
+        }
+      }
+
+      submitButton.addEventListener("click", handleFormSubmit);
+    </script>
+  </body>
+</html>
